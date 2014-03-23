@@ -1,23 +1,4 @@
 Attribute VB_Name = "QuickSearch"
-
-Sub eval()
-    Dim Doc As Document
-    Set Doc = ActiveDocument
-    'MsgBox Application.Evaluate("vba.GlobalMacros.Module1.doc.FileName")CreateColorSwatch()
-    MsgBox Application.Evaluate("Math") '.Module1.CreateColorSwatch()
-    'MsgBox Application.Evaluate("vba.Application.ActiveDocument.ActiveLayer.CreateEllipse(0, 0, 10, 10, 90, 90, false)")
-End Sub
-'coment test
-Public Function foo() As String
-    'Set VBScript = New MSScriptControl.ScriptControl
-    'FExecuteLine ("1")
-    'ActiveLayer.CustomCommand
-    'Dim sc As New ScriptControl
-    'Call sc.Execute("vba.console.Module1")
-    'Call ActiveLayer.CreateEllipse(0, 0, 10, 10, 90, 90, False)
-    foo = "test"
-End Function
-
 Public Sub QuickSearch()
     QuickSearchFrm.Show
 End Sub
