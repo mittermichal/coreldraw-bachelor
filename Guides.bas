@@ -34,6 +34,10 @@ Sub GuidesOnTangents()
  Dim sh As Shape
  Dim sp As SubPath
  Dim s As Segment
+ Set sr = ActiveSelectionRange
+ If sr.Count = 0 Then
+    Exit Sub
+ End If
  ActiveDocument.BeginCommandGroup "Guides On Tangents"
  For Each sh In ActiveSelectionRange.Shapes
     Set sh = sh.Duplicate
@@ -48,5 +52,6 @@ Sub GuidesOnTangents()
     sh.Delete
  Next sh
  ActiveDocument.EndCommandGroup
+ sr.CreateSelection
 End Sub
 
