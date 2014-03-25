@@ -24,3 +24,29 @@ Sub GuidesFromBoundingBox()
         90)
     'todo: activate layer
 End Sub
+
+'todo: Sub CreateGuideWithoutDuplicates
+
+Sub GuidesOnTangents()
+ Dim x As Double, y As Double
+ Dim a As Double
+ Dim sr As ShapeRange
+ Dim sh As Shape
+ Dim sp As SubPath
+ Dim s As Segment
+ ActiveDocument.BeginCommandGroup "Guides On Tangents"
+ For Each sh In ActiveSelectionRange.Shapes
+    Set sh = sh.Duplicate
+    sh.ConvertToCurves
+    For Each sp In sh.Curve.SubPaths
+       For Each s In sp.Segments
+           s.GetPointPositionAt x, y, 0.5, cdrRelativeSegmentOffset
+           a = s.GetTangentAt(0.5, cdrRelativeSegmentOffset)
+           ActivePage.GuidesLayer.CreateGuideAngle x, y, a
+       Next s
+    Next sp
+    sh.Delete
+ Next sh
+ ActiveDocument.EndCommandGroup
+End Sub
+
