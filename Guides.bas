@@ -24,10 +24,16 @@ Sub GuidesOnTangents()
  duplicated = False
  Dim sp As SubPath
  Dim s As Segment
+ 
  Set sr = ActiveSelectionRange
  If sr.Count = 0 Then
     Exit Sub
  End If
+ 
+ Dim offset As Double
+ offset = StrToDbl(GetSetting("CorelDrawBachelor", "Guides", "tangentOffset", "0.5"))
+ 
+ 
  ActiveDocument.BeginCommandGroup "Guides On Tangents"
  For Each sh In ActiveSelectionRange.Shapes
  
@@ -39,8 +45,8 @@ Sub GuidesOnTangents()
     
     For Each sp In sh.Curve.SubPaths
        For Each s In sp.Segments
-           s.GetPointPositionAt x, y, 0.5, cdrRelativeSegmentOffset
-           a = s.GetTangentAt(0.5, cdrRelativeSegmentOffset)
+           s.GetPointPositionAt x, y, offset, cdrRelativeSegmentOffset
+           a = s.GetTangentAt(offset, cdrRelativeSegmentOffset)
            ActivePage.GuidesLayer.CreateGuideAngle x, y, a
        Next s
     Next sp
@@ -53,3 +59,10 @@ Sub GuidesOnTangents()
  sr.CreateSelection
 End Sub
 
+Sub FrmShow()
+    GuidesFrm.Show
+End Sub
+
+Private Function StrToDbl(s As String)
+    StrToDbl = Val(Replace(s, ",", "."))
+End Function
