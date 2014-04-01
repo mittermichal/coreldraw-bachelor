@@ -36,14 +36,8 @@ Sub GuidesOnTangents()
  
  ActiveDocument.BeginCommandGroup "Guides On Tangents"
  For Each sh In ActiveSelectionRange.Shapes
- 
-    If sh.Type <> cdrCurveShape Then
-        Set sh = sh.Duplicate
-        duplicated = True
-        sh.ConvertToCurves
-    End If
     
-    For Each sp In sh.Curve.SubPaths
+    For Each sp In sh.DisplayCurve.SubPaths
        For Each s In sp.Segments
            s.GetPointPositionAt x, y, offset, cdrRelativeSegmentOffset
            a = s.GetTangentAt(offset, cdrRelativeSegmentOffset)
@@ -51,9 +45,6 @@ Sub GuidesOnTangents()
        Next s
     Next sp
     
-    If duplicated Then
-        sh.Delete
-    End If
  Next sh
  ActiveDocument.EndCommandGroup
  sr.CreateSelection
