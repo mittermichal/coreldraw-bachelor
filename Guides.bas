@@ -40,8 +40,8 @@ Sub GuidesOnTangents()
     If sh.Type <> cdrCurveShape Then
         Set sh = sh.Duplicate
         duplicated = True
+        sh.ConvertToCurves
     End If
-    sh.ConvertToCurves
     
     For Each sp In sh.Curve.SubPaths
        For Each s In sp.Segments
@@ -64,5 +64,5 @@ Sub FrmShow()
 End Sub
 
 Private Function StrToDbl(s As String)
-    StrToDbl = Val(Replace(s, ",", "."))
+    StrToDbl = Val(Replace(s, ".", ","))
 End Function
