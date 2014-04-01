@@ -21,7 +21,6 @@ Private Sub txtOffset_Change()
     'If IsNumeric(txtOffset.Value) Then
         SaveSetting "CorelDrawBachelor", "Guides", "tangentOffset", txtOffset.Value
     'End If
-    GuidesFrm.Label1.Caption = txtOffset.Value
 End Sub
 
 Private Sub UserForm_Initialize()
