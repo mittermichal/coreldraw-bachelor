@@ -1,5 +1,5 @@
 Attribute VB_Name = "QuickSearch"
-Public Sub QuickSearch()
+Public Sub QuickSearchForm()
     QuickSearchFrm.Show
 End Sub
 'creates selection of objects found by query string
@@ -16,23 +16,7 @@ Sub Query(q As String, add As Boolean, subs As Boolean)
         sr.CreateSelection
     End If
 End Sub
-'https://coreldraw.com/forums/p/26065/122174.aspx
-Sub myOptimize(bUse As Boolean, Optional bIsStart As Boolean = True)
-    If bUse Then
-        If bIsStart Then
-            Optimization = True
-            EventsEnabled = False
-            ActiveDocument.SaveSettings
-            ActiveDocument.PreserveSelection = False
-        Else
-            ActiveDocument.PreserveSelection = True
-            ActiveDocument.RestoreSettings
-            EventsEnabled = True
-            Optimization = False
-            ActiveWindow.Refresh
-        End If
-    End If
-End Sub
+
 
 Public Sub OnErrorDemo()
    On Error GoTo ErrorHandler   ' Enable error-handling routine.
