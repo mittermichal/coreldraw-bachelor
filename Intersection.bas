@@ -1,31 +1,6 @@
 Attribute VB_Name = "Intersection"
 Option Explicit
 
-Sub Overlaps()
-    Dim txt As String
-    Dim res As Boolean
-    Dim c As CrossPoints
-    Dim point As CrossPoint
-    res = ActiveSelectionRange(1).Curve.IntersectsWith(ActiveSelectionRange(2).Curve)
-    'c = 0
-    Set c = ActiveSelectionRange(1).Curve.SubPaths(1).GetIntersections(ActiveSelectionRange(2).Curve.SubPaths(1), 0)
-    For Each point In c
-        'Call ActiveLayer.CreateEllipse2(point.PositionX, point.PositionY, point.Offset)
-        txt = txt + "[" + CStr(point.offset * 25.4) + " " + CStr(point.Offset2 * 25.4) + "]"
-    Next
-    If res Then
-        MsgBox "pretina body:" + CStr(c.Count) + txt
-    End If
-End Sub
-
-Sub Poly()
-    'ActiveSelectionRange(1).Curve.CopyAssign (ActiveSelectionRange(1).Curve.GetPolyline(2))
-    Dim s As Curve
-    Set s = ActiveSelection.Shapes.First.DisplayCurve.GetCopy.GetPolyline(5).GetCopy
-    ActiveLayer.CreateCurve (s)
-    MsgBox CStr(ActiveSelectionRange(1).Curve.Nodes.Count) + " -> " + CStr(ActiveSelectionRange(1).Curve.GetPolyline(5).Nodes.Count)
-End Sub
-
 Sub Intersections()
  Dim x As Double, y As Double
  Dim asr As ShapeRange, sr As ShapeRange
@@ -37,7 +12,6 @@ Sub Intersections()
  Dim cps As Long
  Dim sw As StopWatch
  
- 
 Set asr = ActiveSelectionRange
  If asr.Count = 0 Then
     Exit Sub
@@ -45,7 +19,7 @@ Set asr = ActiveSelectionRange
  
 Set sw = New StopWatch
  sw.StartTimer
- myOptimize False, True
+ myOptimize True, True
 
  
 
@@ -116,6 +90,8 @@ Set sw = New StopWatch
  Status.BeginProgress "Dvojice"
  c = 0
  cps = 0
+ Dim cps_array() As CrossPoint
+ ReDim cps_array(0)
  For i = 1 To sr.Count
     Set sh1 = sr.Shapes(i)
     'If sh1.DisplayCurve.SubPaths.Count <> 1 Then
@@ -136,7 +112,21 @@ Set sw = New StopWatch
                 For l = 1 To sh2.DisplayCurve.SubPaths.Count
                     If Not sh1.DisplayCurve.SubPaths(k).BoundingBox.Intersect(sh2.DisplayCurve.SubPaths(l).BoundingBox).IsEmpty Then
                         Set cs = sh1.DisplayCurve.SubPaths(k).GetIntersections(sh2.DisplayCurve.SubPaths(l))
+                        If UBound(cps_array) > 0 Then
+                            ReDim Preserve cps_array(1 To cps + cs.Count)
+                        ElseIf cs.Count > 0 Then
+                            ReDim cps_array(1 To cs.Count)
+                        End If
+                        
+                        Dim m As Long
+                        For m = 1 To cs.Count
+                            Set cps_array(cps + m) = cs(m)
+                        Next
+                        
                         cps = cps + cs.Count
+                        
+
+                        
                         'For Each cp In cs
                         '    ActiveLayer.CreateEllipse2 cp.PositionX, cp.PositionY, 0.1
                         'Next cp
@@ -146,63 +136,76 @@ Set sw = New StopWatch
             Next k
         End If
     Next j
+    'ShapeIntersections sh1
+    Dim tmp_array() As CrossPoint
+    tmp_array = ShapeIntersections(sh1)
+    If UBound(cps_array) > 0 Then
+        ReDim Preserve cps_array(1 To cps + UBound(tmp_array))
+    ElseIf UBound(tmp_array) > 0 Then
+        ReDim cps_array(1 To UBound(tmp_array))
+    End If
     
-    Set cs = ShapeIntersections(sh1)
-    'cps = cps + cs.Count
+    For m = 1 To UBound(tmp_array)
+        Set cps_array(cps + m) = tmp_array(m)
+    Next
+    
+    cps = cps + UBound(tmp_array)
+    
     'sh1.Curve.SubPaths.First
  Next i
- MsgBox CStr(c) & " CPS: " & CStr(cps)
+ 
+ Dim lr As Layer
+ If UBound(cps_array) > 0 Then
+ Set lr = GetLayerOrCreate("InterSections")
+ For i = 1 To UBound(cps_array)
+    'a = s.GetTangentAt(offset, cdrRelativeSegmentOffset)
+    Set sh = lr.CreateEllipse2(cps_array(i).PositionX, cps_array(i).PositionY, 0.5)
+    sh.Outline.Color = CreateRGBColor(255, 0, 0)
+ Next i
+ End If
+ 
 1000:
  Status.EndProgress
- sr.Delete
+ sr.Delete 'preskocit chyby
  'asr.Delete
  ActiveDocument.EndCommandGroup
- asr.CreateSelection
+ 'asr.CreateSelection
  myOptimize True, False
- MsgBox sw.EndSeconds
+ MsgBox sw.EndSeconds & CStr(c) & " CPS: " & CStr(cps)
 End Sub
 
-Sub BreakTextLine()
-Dim s As Shape
-Dim n&, l&
-    Set s = ActiveShape
-    If s Is Nothing Then Exit Sub
-    If s.Type <> cdrTextShape Then Exit Sub
-    l = s.Text.Story.Lines.Count
-    s.BreakApart
-    For n = 1 To l - 1
-        Set s = s.Previous
-        s.AddToSelection
-    Next n
-End Sub
 
-Sub Test()
- Dim s As Shape
- Dim n As Long
- n = 0
- For Each s In ActivePage.Shapes
-  If s.Locked Then n = n + 1
- Next s
- MsgBox "There are " & n & " shapes locked on the current page"
-End Sub
-
-Private Function ShapeIntersections(sh As Shape) As CrossPoints
+Private Function ShapeIntersections(sh As Shape) As CrossPoint()
     Dim i As Long, j As Long
+    Dim c As Long
     Dim ret As Collection, cps As CrossPoints, cp As CrossPoint
     Dim sr As ShapeRange
+    Dim rets() As CrossPoint
+    ReDim rets(0)
     Set sr = CreateShapeRange
     Set ret = New Collection
-    Set sr = sh.BreakApartEx
+    Set sr = sh.Duplicate.BreakApartEx
+    
+    c = 0
     For i = 1 To sr.Count
         For j = i + 1 To sr.Count
-            If Not sr(i).DisplayCurve.SubPaths.First.BoundingBox.Intersect(sr().DisplayCurve.SubPaths.First.BoundingBox).IsEmpty Then
+            'If Not sr(i).DisplayCurve.SubPaths.First.BoundingBox.Intersect(sr(j).DisplayCurve.SubPaths.First.BoundingBox).IsEmpty Then
                 
-                Set cps = sh.DisplayCurve.SubPaths(i).GetIntersections(sh.DisplayCurve.SubPaths(j))
-                For Each cp In cps
-                    ret.add cp
+                Set cps = sr(i).DisplayCurve.SubPaths.First.GetIntersections(sr(j).DisplayCurve.SubPaths.First)
+
+                If UBound(rets) > 0 Then
+                    ReDim Preserve rets(1 To c + cps.Count)
+                ElseIf cps.Count > 0 Then
+                    ReDim rets(1 To cps.Count)
+                End If
+                Dim k As Long
+                For k = 1 To cps.Count
+                    Set rets(c + k) = cps(k)
                 Next
-            End If
+                c = c + cps.Count
+            'End If
         Next j
     Next i
-    Set ShapeIntersections = CVar(ret)
+    sr.Delete
+    ShapeIntersections = rets
 End Function
