@@ -12,5 +12,15 @@ Private Sub GlobalMacroStorage_QueryDocumentClose(ByVal Doc As Document, Cancel 
 End Sub
 'https://www.youtube.com/watch?v=MuMCmX8vWVw
 Private Sub GlobalMacroStorage_SelectionChange()
-   'LengthArea.updateForm
+If ActiveDocument Is Nothing Then Exit Sub
+If Not LengthAreaFrm.Visible Then Exit Sub
+If ActiveSelectionRange.Count = 0 Then Exit Sub
+If LengthAreaFrm.CheckBox1.Value Then
+     'myOptimize True, True
+     'EventsEnabled = False
+     LengthArea.updateForm
+     'EventsEnabled = True
+     'myOptimize True, False
+End If
 End Sub
+

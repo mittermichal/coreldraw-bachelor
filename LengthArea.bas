@@ -1,37 +1,44 @@
 Attribute VB_Name = "LengthArea"
 Option Explicit
 
-Function AreaSum(unit As cdrUnit) As Double
-    Dim sum As Double
+
+Function AreaLengthSum(sr As ShapeRange, unit As cdrUnit, ByRef l As Double, ByRef a As Double)
+    Dim a_sum As Double, l_sum As Double
+    
+    If sr.Count = 0 Then
+        Exit Function
+    End If
+
+    
     ActiveDocument.SaveSettings
     ActiveDocument.unit = unit
-    'Set sr = sr.Duplicate
-    'Set sr = sr.UngroupAllEx
+
     Dim sh As Shape
-    Dim sr As ShapeRange
+    Set sr = sr.Duplicate.UngroupAllEx
     
-    Set sr = ActiveSelectionRange.Duplicate.UngroupAllEx
-    'Set sr = sh.Shapes.All
-    'sr.AddRange sh.Shapes.All.UngroupAllEx
     For Each sh In sr
-        sum = sum + sh.DisplayCurve.Area
+        a_sum = a_sum + sh.DisplayCurve.Area
+        l_sum = l_sum + sh.DisplayCurve.Length
     Next sh
     sr.Delete
     ActiveDocument.RestoreSettings
-    AreaSum = sum
+    l = l_sum
+    a = a_sum
 End Function
 
 Sub updateForm()
-    LengthAreaFrm.Label1.Caption = CStr(AreaSum(cdrMillimeter)) & "mm2"
+    myOptimize True, True
+    Dim sr As ShapeRange
+    Set sr = ActiveSelectionRange
+    Dim l As Double, a As Double
+    AreaLengthSum sr, cdrMillimeter, l, a
+    LengthAreaFrm.Label1.Caption = "Obsah: " & CStr(a) & " mm2"
+    LengthAreaFrm.Label2.Caption = "Dlzka: " & CStr(l) & " mm"
+    myOptimize True, False
 End Sub
 
 Sub showForm()
     LengthAreaFrm.Show
 End Sub
 
-Sub Test()
-    Dim sh As Shape
-    Dim sr As ShapeRange
-    Set sr = ActiveSelectionRange.UngroupAllEx
-    'ActiveShape.Shapes.All.UngroupAllEx.CreateSelection
-End Sub
+
